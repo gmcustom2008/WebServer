@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Portfolio Page</title>
+</head>
+<body>
+    <div>
+        <table id="table" border="1px">
+            <tr>
+                <td>Stock</td>
+                <td>Quantity</td>
+                <td>Price</td>
+                <td>Gain/Loss</td>
+            </tr>
+
+
+        </table>
+    </div>
+    <form>
+        Stock symbool:<br>
+        <input type="text" name="symbool" id="symbool"><br>
+        Quantity:<br>
+        <input type="text" name="Quantity" id="Quantity"><br>
+        Price:<br>
+        <input type="text" name="Price" id="Price">
+    </form>
+    <button onclick="reset()">reset</button>
+    <button onclick="summit()">update</button>
+    <br>
+    <a href="./research.html">Go to Research</a>
+    <br>
+    <a href="./index.html">Go to Index</a>
+</body>
+</html>
+
+<script>
+    function reset() {
+        document.getElementById("symbool").value = ""
+        document.getElementById("Quantity").value = ""
+        document.getElementById("Price").value = ""
+        alert("All reset")
+    }
+    function summit() {
+        if (document.getElementById("symbool").value != "" && document.getElementById("Quantity").value != "" && document.getElementById("Price").value != "") {
+            symbool = document.getElementById("symbool").value
+            var url = "portfolio.json"
+            var requestChange = new XMLHttpRequest();
+            requestChange.open("get", url);
+            requestChange.send(null);
+            b = false;
+            requestChange.onload = function () {
+                if (requestChange.status == 200) {
+                    var json = JSON.parse(requestChange.responseText);
+                    for (let i = 0; i < json.length; i++) {
+                        if (json[i].Stock != symbool) {
+                            urlRequest = "https://cloud.iexapis.com/stable/ref-data/symbols?token=pk_312bec3e3b364a8689bc20db273831d7"
+                            var requestNewStock = new XMLHttpRequest();
+                            requestNewStock.open("get", urlRequest);
+                            requestNewStock.send(null);
+                            requestNewStock.onload = function () {
+                                if (requestNewStock.status == 200) {
+                                    var json = JSON.parse(requestNewStock.responseText);
+                                    for (let i = 0; i < json.length; i++) {
+                                        if (document.getElementById("symbool").value == json[i].symbol && json[i].type != "cs") {
+                                            a = false;
+                                            symbool1 = document.getElementById("symbool").value
+                                            Quantity1 = document.getElementById("Quantity").value
+                                            Price1 = Number(document.getElementById("Price").value)
+                                            window.location.href = "http://localhost:8080/add.py?symbool=" + symbool1 + "&Quantity=" + Number(Quantity1) + "&Price=" + Number(Price1.toFixed(2))
+                                        }
+                                    }
+                                    if (a != false) {
+                                        alert("Can not update type='cs'")
+                                    }
+                                }
+                            }
+                        } else {
+                            urlRequest = "https://cloud.iexapis.com/stable/ref-data/symbols?token=pk_312bec3e3b364a8689bc20db273831d7"
+                            var requestData = new XMLHttpRequest();
+                            requestData.open("get", urlRequest);
+                            requestData.send(null);
+                            requestData.onload = function () {
+                                if (requestData.status == 200) {
+                                    //Acquisition of Simon data
+                                    var a = true;
+                                    var json = JSON.parse(requestData.responseText);
+                                    for (let i = 0; i < json.length; i++) {
+                                        if (document.getElementById("symbool").value == json[i].symbol && json[i].type != "cs") {
+                                            a = false
+                                            var url = "portfolio.json"
+                                            var request = new XMLHttpRequest();
+                                            request.open("get", url);
+                                            request.send(null);
+                                            request.onload = function () {
+                                                if (request.status == 200) {
+                                                    var json = JSON.parse(request.responseText);
+                                                    for (let i = 0; i < json.length; i++) {
+                                                        if (Number(document.getElementById("Quantity").value) > 0) {
+                                                            var a = Number(json[i].Quantity) * Number(json[i].Price)
+                                                            var b = Number(document.getElementById("Quantity").value) * Number(document.getElementById("Price").value)
+                                                            var Quantity = Number(document.getElementById("Quantity").value) + Number(json[i].Quantity)
+                                                            var Price1 = a + b
+                                                            var Price = Price1 / Quantity
+                                                            var symbool = document.getElementById("symbool").value
+                                                            window.location.href = "http://localhost:8080/add.py?symbool=" + symbool + "&Quantity=" + Quantity + "&Price=" + Price.toFixed(2)
+                                                        }
+                                                        if (Number(document.getElementById("Quantity").value) < 0) {
+                                                            if (Number(document.getElementById("Quantity").value) >= Number("-" + json[i].Quantity)) {
+                                                                var Quantity = Number(document.getElementById("Quantity").value) + Number(json[i].Quantity);
+                                                                var a = Number(json[i].Quantity) * Number(json[i].Price)
+                                                                var b = Number(document.getElementById("Quantity").value) * Number(document.getElementById("Price").value)
+                                                                var Price1 = a + b
+                                                                var Price = Price1 / Quantity
+                                                                var Price = Price1 / Quantity
+                                                                var symbool = document.getElementById("symbool").value
+                                                                window.location.href = "http://localhost:8080/add.py?symbool=" + symbool + "&Quantity=" + Quantity + "&Price=" + Price.toFixed(2)
+                                                            } else {
+                                                                alert("The number you entered is illegal")
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    if (a != false) {
+                                        alert("Can not update type='cs'")
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        else {
+            alert("You must input Stock & Quantity & Price")
+        }
+    }
+    window.onload = function () {
+        var url = "portfolio.json"
+        var request = new XMLHttpRequest();
+        request.open("get", url);
+        request.send(null);
+        request.onload = function () {
+            if (request.status == 200) {
+                var json = JSON.parse(request.responseText);
+                console.log(json)
+                for (let i = 0; i < json.length; i++) {
+                    if (json[i].Quantity == "0") {
+                        continue
+                    }
+                    var htmlTableCellElementStock = document.createElement("td");
+                    var htmlTableCellElementQuantity = document.createElement("td");
+                    var htmlTableCellElementPrice = document.createElement("td");
+                    var htmlTableCellElementGL = document.createElement("td");
+                    htmlTableCellElementStock.innerText = json[i].Stock
+                    htmlTableCellElementQuantity.innerText = json[i].Quantity
+                    htmlTableCellElementPrice.innerText = json[i].Price
+                    var urlRequest = "https://cloud.iexapis.com/stable/stock/" + json[i].Stock + "/quote?token=pk_312bec3e3b364a8689bc20db273831d7"
+                    var requestBackData = new XMLHttpRequest();
+                    requestBackData.open("get", urlRequest);
+                    requestBackData.send(null);
+                    var gl = 0;
+                    requestBackData.onload = function () {
+                        var dates = JSON.parse(requestBackData.responseText);
+                        gl = (dates.latestPrice - dates.close) / dates.close * 100
+                    }
+                    htmlTableCellElementGL.innerText = gl + "%"
+                    document.getElementById("table").appendChild(document.createElement("tr"))
+                    document.getElementById("table").appendChild(htmlTableCellElementStock)
+                    document.getElementById("table").appendChild(htmlTableCellElementQuantity)
+                    document.getElementById("table").appendChild(htmlTableCellElementPrice)
+                    document.getElementById("table").appendChild(htmlTableCellElementGL)
+                }
+            }
+        }
+    }
+</script>

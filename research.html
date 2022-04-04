@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Research Page</title>
+</head>
+<body>
+Stock symbol(Enter to search): <input type="text" id="symbol" onchange="change()"/>
+<br>
+<a href="./portfolio.html">Go to Portfolio</a>
+<br>
+<a href="./index.html">Go to Index</a>
+</body>
+</html>
+<script src="https://cdn.staticfile.org/echarts/4.3.0/echarts.min.js"></script>
+<script>
+  function change() {
+    var symbol=document.getElementById("symbol").value;
+    var urlGet="https://cloud.iexapis.com/stable/stock/"+symbol+"/stats?token=pk_312bec3e3b364a8689bc20db273831d7";
+    var requestFromIex = new XMLHttpRequest();
+    requestFromIex.open("get", urlGet);
+      requestFromIex.send(null);
+      requestFromIex.onload = function () {
+             var dates = JSON.parse(requestFromIex.responseText);
+                 console.log(dates)
+                 document.getElementById("symbol1").innerText="Symbol:"+symbol
+                 document.getElementById("Company").innerText="Company Name:"+dates.companyName
+                 document.getElementById("ratio").innerText="PE ratio:"+dates.peRatio
+                 document.getElementById("Market").innerText="Market Capitalization:"+dates.marketcap
+                 document.getElementById("high").innerText="52 week high:"+dates.week52high
+                 document.getElementById("low").innerText="52 week low:"+dates.week52low
+      }
+      var request = new XMLHttpRequest();
+      var url = "https://cloud.iexapis.com/stable/stock/"+symbol+"/chart/5y?chartCloseOnly=true&token=pk_312bec3e3b364a8689bc20db273831d7"
+            var request = new XMLHttpRequest();
+            request.open("get", url);
+            request.send(null);
+            request.onload = function () {
+                if (request.status == 200) {
+                    const data = [];
+                    var dates = JSON.parse(request.responseText);
+                    for (let i = 0; i < dates.length; i++) {
+                        var list=[]
+                        list[0]=dates[i].date.toString()
+                        list[1]=dates[i].close
+                        data[i]=list
+                    }
+                    var myChart = echarts.init(document.getElementById('main'));
+                    const dateList = data.map(function (item) {
+                      return item[0];
+                    });
+                    const valueList = data.map(function (item) {
+                      return item[1];
+                    });
+                    option = {
+                      // Make gradient line here
+                      visualMap: [
+                        {
+                          show: false,
+                          type: 'continuous',
+                          seriesIndex: 0,
+                          min: 0,
+                          max: 400
+                        },
+                      ],
+                      title: [
+                        {
+                          left: 'center',
+                          text: 'a graph of the daily\n' +
+                              'closing price for five year period (5y)'
+                        },
+                      ],
+                      tooltip: {
+                        trigger: 'axis'
+                      },
+                      xAxis: [
+                        {
+                          data: dateList
+                        },
+                      ],
+                      yAxis: [
+                        {},
+                      ],
+                      grid: [
+                        {
+                          bottom: '60%'
+                        },
+                      ],
+                      series: [
+                        {
+                          type: 'line',
+                          showSymbol: false,
+                          data: valueList
+                        },
+                      ]
+                    };
+                    myChart.setOption(option);
+                }
+            }
+  }
+</script>
